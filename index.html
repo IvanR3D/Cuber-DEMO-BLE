@@ -78,6 +78,34 @@
 				box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
 				z-index: 2;
 			}
+
+			* {
+  box-sizing: border-box;
+}
+
+.loader-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: none;
+}
+
+.rubik-loader {
+  width: 100px;
+  height: 100px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background-image: url(https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2NlaTI1OTl3bHY1cXl3cW1tanNhbWxjNjc0c3ZrZzBsNDltNTczcyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/kOe46rvaOLg8smLgs5/giphy.gif);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
 		</style>
 		<!--  Third-party frameworks and scaffolds.  -->
 
@@ -107,6 +135,11 @@
 	
 	</head>
 	<body class="graydient">
+
+
+		<div class="loader-wrapper">
+			<div class="rubik-loader"></div>
+		</div>
 
 		<button id="connectBtn">Connect</button>
 
@@ -363,11 +396,13 @@ const getState = (data) => {
 	  if (!connected) {
 		try {
 			const { server, device: connectedDevice } = await connectToBluetoothDevice();
+			document.getElementsByClassName("loader-wrapper")[0].style.display = "block";
 			cd = connectedDevice;
 			setDevice(connectedDevice);
 
 			characteristic = await startNotifications(server);
 			setButtonConnected(); 
+			document.getElementsByClassName("loader-wrapper")[0].style.display = "none";
 			characteristic.addEventListener('characteristicvaluechanged', (event) => {
 				const { value } = event.target; // 20 bytes sent by the cube
 				const uint8array = decrypt(new Uint8Array(value.buffer));
