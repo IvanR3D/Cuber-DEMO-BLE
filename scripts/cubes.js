@@ -111,7 +111,7 @@ function Cube( preset ){
 
 	//  How long should a Cube.twist() take?
 
-	this.twistDuration = SECOND
+	this.twistDuration = 0.1
 
 
 	//  If we shuffle, how shall we do it?
@@ -1216,8 +1216,8 @@ setupTasks.push( function(){
 		presetTextAnimate: function(){//  Specifically for Monica!
 
 			var 
-			delay = 1,//SECOND * 2,
-			twistDurationScaled = [ (20+90).absolute().scale( 0, 90, 0, cube.twistDuration ), 250 ].maximum()
+			delay = 0.3,//SECOND * 2,
+			twistDurationScaled = [ (20+90).absolute().scale( 0, 90, 0, cube.twistDuration ), 10 ].maximum()
 			_this = this
 
 			cube.shuffleMethod = cube.ALL_SLICES

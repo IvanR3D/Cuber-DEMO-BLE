@@ -12,7 +12,73 @@
 		
 		<title>Cuber</title>
 		
+		<style>
+			#timerContainer {
+				position: absolute;
+				bottom: 60px;
+				width: 100%;
+				text-align: center;
+				font-size: 50px;
+				z-index: 2;
+			}
+			#timer {
+				padding: 20px 0;
+			}
+			#timerButton {
+				background: transparent;
+				font-size: 20px;
+				color: rgba(255, 255, 255, 0.3);
+				border: 2px solid rgba(255, 255, 255, 0.3);
+				cursor: pointer;
+			}
+			#timerButton {
+				color: rgba(255, 255, 255);
+    			border: 2px solid rgba(255, 255, 255);
+			}
+			#connectBtn {
+				position: fixed; 
+				top: 10px; 
+				left: 10px; 
+				background: transparent; 
+				font-size: 20px; 
+				color: rgba(255, 255, 255, 0.3); 
+				border: 2px solid rgba(255, 255, 255, 0.3); 
+				cursor: pointer;
+				z-index: 1;
+			}
+			#connectBtn:hover {
+				border: 2px solid rgba(255, 255, 255, 1);
+				color: rgba(255, 255, 255, 1);
+				cursor: pointer;
+			}
 
+
+
+			.popup {
+				display: none;
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background-color: rgba(0, 0, 0, 0.7);
+				justify-content: center;
+				align-items: center;
+			}
+
+			.popup-content {
+				position: absolute;
+				top: 40%;
+    			left: 40%;
+				background-color: white;
+				color: black;
+				padding: 20px;
+				border-radius: 5px;
+				text-align: center;
+				box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+				z-index: 2;
+			}
+		</style>
 		<!--  Third-party frameworks and scaffolds.  -->
 
 		<script charset="utf-8" src="scripts/vendor/three.min.js"></script>
@@ -39,11 +105,16 @@
 		<script charset="utf-8" src="scripts/solvers/stewart.js"></script>		
 		<script charset="utf-8" src="scripts/erno.js"></script>		
 	
-
 	</head>
 	<body class="graydient">
 
+		<button id="connectBtn">Connect</button>
 
+		<div id="timerContainer">
+			<div id="timer">00:00.00</div>
+			<button id="timerButton" onclick="toggleTimer()">Start Timer</button>
+		</div>
+		
 		<div id="cubeHasTwistsQueued"></div>
 		<div id="cubeIsTweening"></div>
 		<div id="twist"></div>
@@ -144,5 +215,317 @@
 
 			</div>
 		</div>
+
+
+		<!-- The Popup Container -->
+		<div id="popup" class="popup">
+			<div class="popup-content">
+				<p>Disconnect the cube?</p>
+				<button id="yesButton">Yes</button>
+				<button id="noButton">No</button>
+			</div>
+		</div>
+
+
+		<script>
+
+			let characteristic; // Declare the characteristic in a broader scope
+			let cd; // Declare the connectedDevice in a broader scope
+
+			let connectBtn = document.getElementById("connectBtn");
+			let connected = false; 
+
+
+			const popup = document.getElementById("popup");
+			const yesButton = document.getElementById("yesButton");
+			const noButton = document.getElementById("noButton");
+
+			// Function to change button color to green when connected
+			function setButtonConnected() {
+				connectBtn.innerText = "Connected";
+				connectBtn.style.color = "#0a0";
+				connectBtn.style.border = "2px solid #0a0";
+				connected = true;
+			}
+			// Function to reset button color
+			function resetButtonColor() {
+				connectBtn.innerText = "Connect";
+				connectBtn.style.color = "rgba(255, 255, 255, 0.3)";
+				connectBtn.style.border = "2px solid rgba(255, 255, 255, 0.3)";
+			}
+
+			const decryptionKey = new Uint8Array([176, 81, 104, 224, 86, 137, 237, 119, 38, 26, 193, 161, 210, 126, 150, 81, 93, 13, 236, 249, 89, 235, 88, 24, 113, 81, 214, 131, 130, 199, 2, 169, 39, 165, 171, 41]);
+			const solvedState = new Uint8Array([0x12,0x34,0x56,0x78,0x33,0x33,0x33,0x33,0x12,0x34,0x56,0x78,0x9a,0xbc,0x00,0x00]);
+
+const isEncrypted = (data) => {
+	return data[18].toString(16) === 'a7';
+};
+
+/*const toBin = (dec) => {
+  return (dec >>> 0).toString(2);
+};*/
+
+const getNibble = (val, i) => {
+  if(i % 2 === 1) {
+    return val[(i/2)|0] % 16;
+  }
+  return 0|(val[(i/2)|0] / 16);
+};
+
+const decrypt = (data) => {
+	if(!isEncrypted(data)) return data;
+	let offset1 = getNibble(data, 38);
+  let offset2 = getNibble(data, 39);
+	for (let i=0; i<20; i++) {
+		// Apply the offset to each value in the data
+		data[i] += (decryptionKey[offset1 + i] + decryptionKey[offset2 + i]);
+	}
+	return data;
+};
+
+const getMove = (data) => {
+	let lastMoveFace = getNibble(data, 32);
+  let lastMoveDirection = getNibble(data, 33);
+	// for white side facing user, with red on top
+	let faceNames = ["L", "B", "D", "F", "U", "R"];
+	
+	return `${faceNames[lastMoveFace-1]}${lastMoveDirection === 1 ? '' : '\''}`;
+};
+
+const getState = (data) => {
+	let state = '';
+	for(let i=0; i<16; i++){
+		state += data[i].toString(16);
+	}
+	return state;
+};
+
+
+    // Helper functions and constants (similar to React hooks)
+    let device = null;
+
+    function setDevice(connectedDevice) {
+      device = connectedDevice;
+    }
+
+    function useEffect(callback) {
+      // This implementation ignores the dependency array for simplicity
+      // A more advanced implementation should handle dependencies.
+      callback();
+    }
+
+    // The rest of the code remains the same as the React code
+
+    // Constants
+    const SERVICE_UUID = '0000aadb-0000-1000-8000-00805f9b34fb';
+    const CHARACTERISTIC_UUID = '0000aadc-0000-1000-8000-00805f9b34fb';
+
+    const isWebBluetoothSupported = 'bluetooth' in navigator;
+
+    const connectToBluetoothDevice = () => {
+      return navigator.bluetooth
+        .requestDevice({
+          acceptAllDevices: true,
+          optionalServices: [SERVICE_UUID],
+        })
+        .then((device) =>
+          device.gatt.connect().then((server) => {
+            window.mdevice = device;
+            window.mserver = server;
+            return { device, server };
+          })
+        );
+    };
+
+    const startNotifications = (server) =>
+      server.getPrimaryService(SERVICE_UUID).then((service) => {
+        window.mservice = service;
+        return service.getCharacteristic(CHARACTERISTIC_UUID).then((characteristic) => {
+          window.mcharacteristic = characteristic;
+          characteristic.startNotifications();
+          return characteristic;
+        });
+      });
+
+    const disconnectFromBluetoothDevice = (device) => {
+      if (!device || !device.gatt.connected) return Promise.resolve();
+      return device.gatt.disconnect();
+    };
+
+    // Event listener function for the "Connect" button
+    const onClickHandler = async () => {
+      // a quick check for bluetooth support in the browser
+      if (!isWebBluetoothSupported) {
+        alert('Browser does not support bluetooth');
+        return;
+      }
+
+	  if (!connected) {
+		try {
+			const { server, device: connectedDevice } = await connectToBluetoothDevice();
+			cd = connectedDevice;
+			setDevice(connectedDevice);
+
+			characteristic = await startNotifications(server);
+			setButtonConnected(); 
+			characteristic.addEventListener('characteristicvaluechanged', (event) => {
+				const { value } = event.target; // 20 bytes sent by the cube
+				const uint8array = decrypt(new Uint8Array(value.buffer));
+				const state = getState(uint8array);
+				console.log(state);
+				console.log(`Move: ${getMove(uint8array)}`);
+				switch (getMove(uint8array)) {
+					case "R":
+						cube.twistQueue.add('R');
+						break;
+					case "R'":
+						cube.twistQueue.add('r');
+						break;
+					case "L":
+						cube.twistQueue.add('L');
+						break;
+					case "L'":
+						cube.twistQueue.add('l');
+						break;
+					case "U":
+						cube.twistQueue.add('U');
+						break;
+					case "U'":
+						cube.twistQueue.add('u');
+						break;
+					case "D":
+						cube.twistQueue.add('D');
+						break;
+					case "D'":
+						cube.twistQueue.add('d');
+						break;
+					case "F":
+						cube.twistQueue.add('F');
+						break;
+					case "F'":
+						cube.twistQueue.add('f');
+						break;
+					case "B":
+						cube.twistQueue.add('B');
+						break;
+					case "B'":
+						cube.twistQueue.add('b');
+						break;
+					default:
+						break;
+				}
+			});
+
+			connectedDevice.addEventListener('gattserverdisconnected', () => {
+				disconnectFromBluetoothDevice(connectedDevice);
+				resetButtonColor();
+			});
+		} catch (error) {
+			console.error('Error:', error);
+			resetButtonColor();
+		}
+	  } else {
+		popup.style.display = "block";
+	  }
+      
+    };
+
+    // Add the event listener to the "Connect" button
+    document.getElementById('connectBtn').addEventListener('click', onClickHandler);
+
+
+
+
+	// Add these variables at the beginning of your JavaScript code
+var timerInterval;
+var startTime;
+var countdownInterval;
+var countdownSeconds = 15; // Countdown duration in seconds
+var timerRunning = false; // Track whether the timer is running
+
+// Function to start the countdown before timer
+function startCountdown() {
+    countdownSeconds = 15; // Reset countdown duration
+    countdownInterval = setInterval(updateCountdown, 1000); // Update countdown every second
+    document.getElementById("timer").textContent = countdownSeconds; // Display initial countdown value
+}
+
+// Function to update the countdown display
+function updateCountdown() {
+    countdownSeconds--;
+    if (countdownSeconds === 0) {
+        clearInterval(countdownInterval);
+        startTimer(); // Start the timer after countdown
+    } else {
+        document.getElementById("timer").textContent = countdownSeconds;
+    }
+}
+
+// Function to start the timer
+function startTimer() {
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 10); // Update timer every 10 milliseconds
+    timerRunning = true;
+    document.getElementById("timerButton").textContent = "Stop Timer";
+}
+
+// Function to stop the timer
+function stopTimer() {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById("timerButton").textContent = "Start Timer";
+}
+
+// Function to toggle the timer start/stop
+function toggleTimer() {
+    if (timerRunning) {
+        stopTimer();
+    } else {
+        startCountdown(); // Start the countdown before starting the timer
+    }
+}
+
+// Function to update the timer display
+function updateTimer() {
+    if (cube.isSolved()) {
+        stopTimer();
+    }
+    var currentTime = Date.now();
+    var elapsedTime = currentTime - startTime; // Time in milliseconds
+    var minutes = Math.floor(elapsedTime / (1000 * 60));
+    var seconds = Math.floor((elapsedTime % (1000 * 60)) / 1000);
+    var milliseconds = elapsedTime % 1000;
+    document.getElementById("timer").textContent = `${minutes}:${seconds < 10 ? "0" : ""}${seconds}.${milliseconds < 100 ? (milliseconds < 10 ? "00" : "0") : ""}${milliseconds}`;
+}
+
+// Add your existing event listener for the space key
+document.addEventListener("keydown", function(event) {
+    if (event.key === " ") { // Space key
+        toggleTimer();
+    }
+});
+
+// Function to start the timer when firstMove() event occurs
+function firstMove() {
+    if (!timerRunning && !countdownInterval) {
+        startCountdown();
+    }
+}
+
+yesButton.addEventListener("click", () => {
+    // Disconnect the cube and set the connected variable to false
+	disconnectFromBluetoothDevice(cd);
+	resetButtonColor();
+	characteristic = null; // Clear the characteristic reference
+	cd = null; // Clear the connectedDevice reference
+    // Close the popup
+    popup.style.display = "none";
+});
+
+noButton.addEventListener("click", () => {
+    // Simply close the popup without disconnecting the cube
+    popup.style.display = "none";
+});
+		</script>
 	</body>
 </html>

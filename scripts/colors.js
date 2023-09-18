@@ -1,5 +1,10 @@
 /*
 
+	I MODIFIED THE COLORS (NOW THEY DON'T MATCH THEIR NAMES) TO MAKE THEM MATCH WITH 
+	THE COLOR SCHEME OF MY GIIKER SMART CUBE
+
+	In case I push this code without modifying it, you will know that I wasn't drunk
+	when name them... just in a hurry to see a nice result!
 
 	COLORS
 
@@ -48,33 +53,33 @@ O = ORANGE = new Color(
 
 	'orange',
 	'O',
-	'#F60',
-	'font-weight: bold; color: #F60',
-	'background-color: #F60; color: rgba( 255, 255, 255, 0.9 )'
+	'#E9C0C5',
+	'font-weight: bold; color: #E9C0C5',
+	'background-color: #E9C0C5; color: rgba( 255, 255, 255, 0.9 )'
 ),
 B = BLUE = new Color(
 
 	'blue',
 	'B',
-	'#00D',
-	'font-weight: bold; color: #00D',
-	'background-color: #00D; color: rgba( 255, 255, 255, 0.9 )'
+	'#98FB98',
+	'font-weight: bold; color: #98FB98',
+	'background-color: #98FB98; color: rgba( 255, 255, 255, 0.9 )'
 ),
 R = RED = new Color(
 
 	'red',
 	'R',
-	'#F00',
-	'font-weight: bold; color: #F00',
-	'background-color: #F00; color: rgba( 255, 255, 255, 0.9 )'
+	'#FA1111',
+	'font-weight: bold; color: #FA1111',
+	'background-color: #FA1111; color: rgba( 255, 255, 255, 0.9 )'
 ),
 G = GREEN = new Color(
 
 	'green',
 	'G',
-	'#0A0',
-	'font-weight: bold; color: #0A0',
-	'background-color: #0A0; color: rgba( 255, 255, 255, 0.9 )'
+	'#1111FA',
+	'font-weight: bold; color: #1111FA',
+	'background-color: #1111FA; color: rgba( 255, 255, 255, 0.9 )'
 ),
 Y = YELLOW = new Color(
 
