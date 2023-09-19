@@ -15,7 +15,7 @@
 		<style>
 			#timerContainer {
 				position: absolute;
-				bottom: 60px;
+				bottom: 10px;
 				width: 100%;
 				text-align: center;
 				font-size: 50px;
@@ -468,85 +468,6 @@ const getState = (data) => {
     // Add the event listener to the "Connect" button
     document.getElementById('connectBtn').addEventListener('click', onClickHandler);
 
-
-
-
-	// Add these variables at the beginning of your JavaScript code
-var timerInterval;
-var startTime;
-var countdownInterval;
-var countdownSeconds = 15; // Countdown duration in seconds
-var timerRunning = false; // Track whether the timer is running
-
-// Function to start the countdown before timer
-function startCountdown() {
-    countdownSeconds = 15; // Reset countdown duration
-    countdownInterval = setInterval(updateCountdown, 1000); // Update countdown every second
-    document.getElementById("timer").textContent = countdownSeconds; // Display initial countdown value
-}
-
-// Function to update the countdown display
-function updateCountdown() {
-    countdownSeconds--;
-    if (countdownSeconds === 0) {
-        clearInterval(countdownInterval);
-        startTimer(); // Start the timer after countdown
-    } else {
-        document.getElementById("timer").textContent = countdownSeconds;
-    }
-}
-
-// Function to start the timer
-function startTimer() {
-    startTime = Date.now();
-    timerInterval = setInterval(updateTimer, 10); // Update timer every 10 milliseconds
-    timerRunning = true;
-    document.getElementById("timerButton").textContent = "Stop Timer";
-}
-
-// Function to stop the timer
-function stopTimer() {
-    clearInterval(timerInterval);
-    timerRunning = false;
-    document.getElementById("timerButton").textContent = "Start Timer";
-}
-
-// Function to toggle the timer start/stop
-function toggleTimer() {
-    if (timerRunning) {
-        stopTimer();
-    } else {
-        startCountdown(); // Start the countdown before starting the timer
-    }
-}
-
-// Function to update the timer display
-function updateTimer() {
-    if (cube.isSolved()) {
-        stopTimer();
-    }
-    var currentTime = Date.now();
-    var elapsedTime = currentTime - startTime; // Time in milliseconds
-    var minutes = Math.floor(elapsedTime / (1000 * 60));
-    var seconds = Math.floor((elapsedTime % (1000 * 60)) / 1000);
-    var milliseconds = elapsedTime % 1000;
-    document.getElementById("timer").textContent = `${minutes}:${seconds < 10 ? "0" : ""}${seconds}.${milliseconds < 100 ? (milliseconds < 10 ? "00" : "0") : ""}${milliseconds}`;
-}
-
-// Add your existing event listener for the space key
-document.addEventListener("keydown", function(event) {
-    if (event.key === " ") { // Space key
-        toggleTimer();
-    }
-});
-
-// Function to start the timer when firstMove() event occurs
-function firstMove() {
-    if (!timerRunning && !countdownInterval) {
-        startCountdown();
-    }
-}
-
 yesButton.addEventListener("click", () => {
     // Disconnect the cube and set the connected variable to false
 	disconnectFromBluetoothDevice(cd);
@@ -561,6 +482,86 @@ noButton.addEventListener("click", () => {
     // Simply close the popup without disconnecting the cube
     popup.style.display = "none";
 });
+
+
+
+
+
+
+
+/* TIMER */
+	
+	let timerInterval;
+	let startTime;
+	let countdownInterval;
+	let countdownSeconds = 15;
+	let timerRunning = false; 
+	let countdownRunning = false;
+
+	// Function to start the countdown before timer
+	function startCountdown() {
+		countdownRunning = true;
+		countdownSeconds = 15; // Reset countdown duration
+		countdownInterval = setInterval(updateCountdown, 1000); // Update countdown every second
+		document.getElementById("timer").textContent = countdownSeconds; // Display initial countdown value
+		document.getElementById("timerButton").textContent = "Inspection";
+	}
+	// Function to update the countdown display
+	function updateCountdown() {
+		countdownSeconds--;
+		if (countdownSeconds === 0) {
+			clearInterval(countdownInterval);
+			startTimer(); // Start the timer after countdown
+		} else {
+			document.getElementById("timer").textContent = countdownSeconds;
+		}
+	}
+	// Function to start the timer
+	function startTimer() {
+		startTime = Date.now();
+		timerInterval = setInterval(updateTimer, 10); // Update timer every 10 milliseconds
+		timerRunning = true;
+		document.getElementById("timerButton").textContent = "Stop Timer";
+	}
+	// Function to stop the timer
+	function stopTimer() {
+		clearInterval(timerInterval);
+		timerRunning = false;
+		document.getElementById("timerButton").textContent = "Start Timer";
+	}
+	// Function to toggle the timer start/stop
+	function toggleTimer() {
+		
+		if (!countdownRunning && !timerRunning) {
+			startCountdown();
+		}
+		else if (countdownRunning && !timerRunning) {
+			clearInterval(countdownInterval);
+			countdownRunning = false;
+			startTimer();
+		} else {
+			stopTimer();
+		}
+	}
+	// Function to update the timer display
+	function updateTimer() {
+		if (cube.isSolved()) {
+			stopTimer();
+		}
+		var currentTime = Date.now();
+		var elapsedTime = currentTime - startTime; // Time in milliseconds
+		var minutes = Math.floor(elapsedTime / (1000 * 60));
+		var seconds = Math.floor((elapsedTime % (1000 * 60)) / 1000);
+		var milliseconds = elapsedTime % 1000;
+		document.getElementById("timer").textContent = `${minutes}:${seconds < 10 ? "0" : ""}${seconds}.${milliseconds < 100 ? (milliseconds < 10 ? "00" : "0") : ""}${milliseconds}`;
+	}
+	// Add your existing event listener for the space key
+	document.addEventListener("keyup", function(event) {
+		if (event.key === " ") { // Space key
+			toggleTimer();
+		}
+	});
+	
 		</script>
 	</body>
 </html>
