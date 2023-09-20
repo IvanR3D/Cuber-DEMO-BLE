@@ -106,6 +106,14 @@
   background-position: center;
   background-size: contain;
 }
+
+.scramble-wrapper {
+	text-align: center;
+	margin-top: 30px;
+}
+#scramble-text {
+	font-size: 26px;
+}
 		</style>
 		<!--  Third-party frameworks and scaffolds.  -->
 
@@ -142,6 +150,10 @@
 		</div>
 
 		<button id="connectBtn">Connect</button>
+
+		<div class="scramble-wrapper">
+			<span id="scramble-text"></span>
+		</div>
 
 		<div id="timerContainer">
 			<div id="timer">00:00.00</div>
@@ -258,7 +270,6 @@
 				<button id="noButton">No</button>
 			</div>
 		</div>
-
 
 		<script>
 
@@ -402,13 +413,16 @@ const getState = (data) => {
 
 			characteristic = await startNotifications(server);
 			setButtonConnected(); 
+
+			setScramble();
+			
 			document.getElementsByClassName("loader-wrapper")[0].style.display = "none";
 			characteristic.addEventListener('characteristicvaluechanged', (event) => {
 				const { value } = event.target; // 20 bytes sent by the cube
 				const uint8array = decrypt(new Uint8Array(value.buffer));
 				const state = getState(uint8array);
-				console.log(state);
-				console.log(`Move: ${getMove(uint8array)}`);
+				//console.log(state);
+				//console.log(`Move: ${getMove(uint8array)}`);
 				switch (getMove(uint8array)) {
 					case "R":
 						cube.twistQueue.add('R');
@@ -547,6 +561,7 @@ noButton.addEventListener("click", () => {
 	function updateTimer() {
 		if (cube.isSolved()) {
 			stopTimer();
+			setScramble();
 		}
 		var currentTime = Date.now();
 		var elapsedTime = currentTime - startTime; // Time in milliseconds
@@ -561,7 +576,24 @@ noButton.addEventListener("click", () => {
 			toggleTimer();
 		}
 	});
-	
 		</script>
+
+<script type="module">
+    import { randomScrambleForEvent } from "https://cdn.cubing.net/js/cubing/scramble";
+    
+    let scramble = "";
+
+    async function setScramble() {
+        scramble = await randomScrambleForEvent("333");
+		document.getElementById("scramble-text").textContent = scramble.toString();
+    }
+
+    // Expose scramble globally
+    window.scramble = scramble;
+	window.setScramble = setScramble;
+
+</script>
+
+
 	</body>
 </html>
