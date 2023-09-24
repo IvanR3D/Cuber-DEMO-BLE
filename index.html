@@ -272,7 +272,7 @@
 		</div>
 
 		<script>
-
+			let scr = "";
 			let characteristic; // Declare the characteristic in a broader scope
 			let cd; // Declare the connectedDevice in a broader scope
 
@@ -415,7 +415,7 @@ const getState = (data) => {
 			setButtonConnected(); 
 
 			setScramble();
-			
+			scr = "";
 			document.getElementsByClassName("loader-wrapper")[0].style.display = "none";
 			characteristic.addEventListener('characteristicvaluechanged', (event) => {
 				const { value } = event.target; // 20 bytes sent by the cube
@@ -423,6 +423,18 @@ const getState = (data) => {
 				const state = getState(uint8array);
 				//console.log(state);
 				//console.log(`Move: ${getMove(uint8array)}`);
+				if (!countdownRunning && !timerRunning) {
+					scr += getMove(uint8array) + " ";
+					scr = compactCubeMoves(scr);
+					if (document.getElementById("scramble-text").textContent === scr.slice(0,-1)) {
+						// issue: if fail when scrambling the cube, even if correct the move, this condition don't happen
+						document.getElementById("scramble-text").textContent = "";
+						toggleTimer();
+					}
+				}
+				else if (countdownRunning) {
+					toggleTimer();
+				}
 				switch (getMove(uint8array)) {
 					case "R":
 						cube.twistQueue.add('R');
@@ -562,6 +574,7 @@ noButton.addEventListener("click", () => {
 		if (cube.isSolved()) {
 			stopTimer();
 			setScramble();
+			scr = "";
 		}
 		var currentTime = Date.now();
 		var elapsedTime = currentTime - startTime; // Time in milliseconds
@@ -576,6 +589,42 @@ noButton.addEventListener("click", () => {
 			toggleTimer();
 		}
 	});
+
+
+
+
+	function compactCubeMoves(scr) {
+		// Split the input string into an array of moves
+		const moves = scr.split(' ');
+		// Initialize variables to store the compacted sequence
+		let compactedScr = '';
+		// Loop through the moves
+		for (let i = 0; i < moves.length; i++) {
+			const move = moves[i];
+			// Initialize variables to track the current move and count
+			let currentMove = move;
+			let moveCount = 1;
+			// Check for repeated moves
+			while (i < moves.length - 1 && moves[i + 1] === currentMove) {
+				moveCount++;
+				i++;
+			}
+			// Append the move to the compacted sequence along with its count if it's greater than 1
+			compactedScr += currentMove;
+			if (moveCount > 1) {
+				if (compactedScr.slice(-1) === "'") {
+					compactedScr = compactedScr.slice(0, -1);
+				}
+			compactedScr += (moveCount === 2) ? '2' : moveCount;
+			}
+			// Add a space unless it's the last move
+			if (i < moves.length - 1) {
+			compactedScr += ' ';
+			}
+		}
+		return compactedScr;
+	}
+
 		</script>
 
 <script type="module">
