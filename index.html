@@ -596,6 +596,7 @@ noButton.addEventListener("click", () => {
 	function compactCubeMoves(scr) {
 		// Split the input string into an array of moves
 		const moves = scr.split(' ');
+    
 		// Initialize variables to store the compacted sequence
 		let compactedScr = '';
 		// Loop through the moves
@@ -621,6 +622,21 @@ noButton.addEventListener("click", () => {
 			if (i < moves.length - 1) {
 			compactedScr += ' ';
 			}
+
+            while (i < moves.length - 1 && moves[i + 1] === currentMove+"'") {
+				console.log(`Cancellation between ${currentMove} and ${moves[i+1]}`);
+                console.log(compactedScr);
+                compactedScr = compactedScr.slice(0,-2);
+                i++;
+                break;
+			}
+            while (i < moves.length - 1 && moves[i + 1] === currentMove[0]) {
+                console.log(`Cancellation between ${currentMove} and ${moves[i+1]}`);
+                console.log(compactedScr);
+                compactedScr = compactedScr.slice(0,-3);
+                i++;
+                break;
+            }
 		}
 		return compactedScr;
 	}
